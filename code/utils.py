@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import numpy as np
-import sys
+import sys, copy
 from scipy.special import gammaincc
 
 import matplotlib as mpl
@@ -12,7 +12,6 @@ rcparams['font.size'] = 22
 rcparams['legend.fontsize'] = 16
 rcparams['mathtext.fontset'] = "stix"
 mpl.rcParams.update(rcparams) # update plot parameters
-import matplotlib.colors as colors
 import matplotlib.pyplot as plt
 
 # Just clear format to correspond with the mathematica/Matlab calculations
@@ -259,3 +258,132 @@ def AET(xyz):
     A   = (Z-X)/np.sqrt(2.0)
     E   = (X - 2.0*Y + Z)/np.sqrt(6.0)
     return A, E
+
+#
+# EVAL ON GRID 2D
+#
+def eval_on_grid2D(params, fun, pnames=None, plot=True, exportdata=False):
+    """ A simple function to evaluate a function/ 
+        criterion on a grid of parameters.
+
+        Inputs:
+
+            params: A list containing the arrays of parameters to compute the function on.
+               fun: The function to be evaluated
+            pnames: List containing the parameter names
+              plot: Flag to make a plot with pre-defined style 
+        exportdata: Flag to return the data if plot is needed to be done outside
+
+        Example:
+
+        p1 = np.linspace(-14, -12, num=20)
+        p2 = np.linspace(-3, 3, num=20)
+        p3 = np.linspace(0, 100, num=20)
+        p0 = [-12, 0., 55.]
+
+        # Evaluate on a grid
+        paramgrid = eval_on_grid(p0, [p1, p2, p3])
+
+    """
+    p1, p2 = params[:] 
+    g = np.zeros((p1.shape[0], p2.shape[0]))
+    ii, jj = 0, 0
+    for a in p1:
+        for s in p2:
+            g[ii,jj] = fun([a, s])
+            jj += 1
+        ii += 1
+        jj = 0
+
+    if plot:
+        X,Y = np.meshgrid(p1, p2)
+        fig = plt.figure(figsize=(10,7))
+        ax  = fig.add_subplot(1, 1, 1)
+        clr = 'lightskyblue'
+        ax.contour(X, Y, g.T, 0, colors=clr, linestyles='-', alpha = 0.9,)
+        cs = ax.contourf(X, Y, g.T, 1, hatches=['', '/'],colors='none',) # , cmap=cmap
+
+        for _, collection in enumerate(cs.collections):
+            collection.set_edgecolor(clr)
+        for collection in cs.collections:
+            collection.set_linewidth(0.)
+        if pnames is None: pnames = [r'$p_1$', r'$p_2$']
+        ax.set_ylabel(pnames[1], fontsize=26)
+        ax.set_xlabel(pnames[0], fontsize=26)
+        plt.show()
+
+    if exportdata:
+        return g
+    else:
+        return None
+
+#
+# EVAL ON GRID
+#
+def eval_on_grid(p0, grid, fun, pnames=None, plot=True, exportdata=False):
+    """ A simple function to evaluate the above 
+        criterion on a grid of parameters.
+
+        Inputs:
+
+                p0: Since we take slices, for more than 2 parameters, we have to compute the 
+                  criterion given 2 parameters, but keeping the rest constant. 
+              grid: a list containing the arrays of parameters to compute the criterion on.
+               fun: The function to be evaluated
+            pnames: List containing the parameter names
+              plot: Flag to make a plot with pre-defined style 
+        exportdata: Flag to return the data if plot is needed to be done outside
+
+        Example:
+
+        p1 = np.linspace(-14, -12, num=20)
+        p2 = np.linspace(-3, 3, num=20)
+        p3 = np.linspace(0, 100, num=20)
+        p0 = [-12, 0., 55.]
+
+        # Evaluate on a grid
+        paramgrid = eval_on_grid(p0, [p1, p2, p3])
+
+    """
+    outgrid = []
+    # Loop over the parameters
+    for rr in range(0, len(grid)):
+        for cc in range(rr + 1, len(grid)):
+
+            paramgrid = np.zeros((grid[rr].shape[0], grid[cc].shape[0]))
+
+            ii, jj = 0, 0
+            for p1 in grid[rr]:
+                for p2 in grid[cc]:
+                    
+                    params_to_eval = copy.deepcopy(p0)
+                    params_to_eval[rr] = p1 # I feel like there is smarter way of doing this
+                    params_to_eval[cc] = p2
+
+                    paramgrid[ii,jj,] = fun(params_to_eval)
+                    jj += 1
+                ii += 1
+                jj = 0
+                if exportdata: outgrid.append(outgrid)
+
+            if plot:
+                fig  = plt.figure(figsize=(10,7))
+                ax   = fig.add_subplot(1, 1, 1)
+                clr  = 'lightskyblue'
+                X, Y = np.meshgrid(grid[rr], grid[cc])
+                ax.contour(X, Y, paramgrid.T, 0, colors=clr, linestyles='-', alpha = 0.9,)
+                cs = ax.contourf(X, Y, paramgrid.T, 1, hatches=['', '/', '\\', '//'],colors='none',) # , cmap=cmap
+
+                # For each level, we set the color of its hatch 
+                for _, collection in enumerate(cs.collections):
+                    collection.set_edgecolor(clr)
+                for collection in cs.collections:
+                    collection.set_linewidth(0.)
+                if pnames is None: pnames = [r'$p_{}$'.format(ii+1), r'$p_{}$'.format(jj+1)]
+                ax.set_ylabel(pnames[cc], fontsize=22)
+                ax.set_xlabel(pnames[rr], fontsize=22)
+                plt.show()
+    if exportdata:
+        return outgrid
+    else:
+        return None
