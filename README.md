@@ -1,2 +1,8 @@
 # stochastic_background_detectability
-Collection of codes for the assessment of isotropic and stochastic gravitational wave signal with the ESA LISA mission 
+
+Collection of codes for the assessment of isotropic and stochastic gravitational wave signal with a given detector. In these examples we particularly focus on the ESA LISA mission. The methods are the ones explained in [this](https://iopscience.iop.org/article/10.1088/1361-6382/abb637) paper.
+
+Assuming an ideal measurement of a given Gaussianly distributed and isotropic stochastic signal, one can calculate the Power Spectral Density (PSD) of the data, with great accuracy, using the method explained in [this](https://core.ac.uk/download/pdf/210665861.pdf) work by M. Trobs *et al*. An implementation of the logPSD function can be found [here](https://github.com/karnesis/spectral). Then we can define a model of the total PSD value at each frequency, as the sum of the instrumental noise plus the signal. Assigning a given level of confidence that we might have for the instrumental noise (parametrized with <img src="https://render.githubusercontent.com/render/math?math=\epsilon">), we can then write a posterior of the signal at each frequency given the data. This allows us to go one step further and calculate a Bayes Factor between two models M1 and M0. M1 refers to a model that predicts the presence of a stochastic signal (Gaussian & isotropic) in the data, while M0 corresponds to the noise only case. The BF(e) is calculated per frequency. This calculation assumes that the signal that is below the noise. 
+
+*Figure 1:* Posterior density (surface) per frequency and given PSD amplitude. The black line represents the detector noise and the yellow line the true injected signal.
+![Alt text](example/example.png?raw=true)
