@@ -1,4 +1,4 @@
-# stochastic_background_detectability
+# Stochastic background signal detectability assessment
 
 Collection of codes for the assessment of isotropic and stochastic gravitational wave signal with a given detector. In these examples we particularly focus on the ESA LISA mission. The methods are the ones explained in [this](https://iopscience.iop.org/article/10.1088/1361-6382/abb637) paper.
 
